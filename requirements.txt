@@ -1,0 +1,7 @@
+# https://developers.google.com/youtube/v3/quickstart/python
+# The Google APIs Client Library for Python:
+google-api-python-client
+#
+# Libraries for user authorization:
+google-auth-oauthlib
+google-auth-httplib2
