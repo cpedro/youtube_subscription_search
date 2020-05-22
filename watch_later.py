@@ -37,6 +37,9 @@ delay = 1
 # If last_run doesn't exist, sent this may days ago to default value.
 days_ago = 3
 
+# Buffer for last run to compare to new videos, in minutes.
+last_run_buffer = 60
+
 
 def load_credentials():
     with open(credentials_file, 'rb') as fp:
@@ -216,7 +219,7 @@ def main(args):
             details = video['contentDetails']
             published = dateutil.parser.isoparse(details['videoPublishedAt'])
             # Give 1 hour as a bit of a buffer to last run.
-            if published > last_run - timedelta(hours=1):
+            if published > last_run - timedelta(minutes=last_run_buffer):
                 channel_videos.append(details)
 
         if args.verbose:
