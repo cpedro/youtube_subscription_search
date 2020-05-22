@@ -160,7 +160,6 @@ def add_video_to_playlist(client, video_id, playlist):
         body={
             'snippet': {
                 'playlistId': playlist,
-                'position': 0,
                 'resourceId': {
                     'kind': 'youtube#video',
                     'videoId': video_id
