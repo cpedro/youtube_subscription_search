@@ -2,7 +2,7 @@
 
 Searches all of your subscrptions for new videos, since the last time the
 program was run, or since 3 days ago.  If any videos were found, it will add
-them to you "Watch later" playlist.
+them to your "Watch later" playlist.
 
 ## Requirements
 To make sure you have all requirements:
@@ -47,11 +47,10 @@ directory as the program, you're good to go.  Just run `./watch_later.py` or
 The first time you run the program, you will be prompted to visit a URL and
 authorize this application.  This is normal, and will only be required once.
 Open the URL in your browser, and follow through the steps on the Google
-website.  You will also may get a warning that this app isn't verified.  This
-is also OK since it is using the project you created under your Google profile.
-Once you have allowed the application to access your data, you will be sent to
-a page with a code.  Copy this code, and paste it into your console and press
-enter.
+website.  You may also get a warning that this app isn't verified.  This is also
+OK since it is using the project you created under your Google profile. Once you
+have allowed the application to access your data, you will be sent to a page
+with a code.  Copy this code, and paste it into your console and press enter.
 
 Once this is done once, an authorization token will be saved to you computer
 and used again in subsequent calls of the program.
@@ -60,9 +59,9 @@ and used again in subsequent calls of the program.
 
 * This program will collect information about your subscriptions the first time
   it runs and use this cached information each time.  This is done to limit the
-  amount of API calls it makes. If you update your subscriptions at any time,
-  such as subbinb or unsubbing channels, you will need to refresh the cached
-  data by running:
+  amount of API calls it makes to avoid hitting Google API quotas.  If you 
+  update your subscriptions at any time, such as subbing or unsubbing to 
+  channels, you will need to refresh the cached data by running:
   ```bash
   watch_later.py -r
   ```
