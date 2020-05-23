@@ -37,12 +37,19 @@ Before you can run this program, you have to setup a project and API key in the
   will save a file to your computer, called `client_id.json`.  Click 'Done'
   after downloading the file.
 1. Copy the `client_id.json` file into the same directory as the python program.
+  *OR* you can use the `-s` option when running the program the first time with
+  the path to `client_id.json`.
 
 ## Running the program
 
 Once the `client_id.json` file has been downloaded and saved to the same
 directory as the program, you're good to go.  Just run `./watch_later.py` or
 `python3 watch_later.py`.
+
+You don't *need* to move `client_id.json` to the same directory, you also use
+then `-s` option when calling the program with a path to the file.  This file
+is only needed on the first run, after that, auth tokens will be saved for
+future runs.
 
 The first time you run the program, you will be prompted to visit a URL and
 authorize this application.  This is normal, and will only be required once.
