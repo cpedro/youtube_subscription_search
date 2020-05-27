@@ -9,7 +9,7 @@ Description: Searches YouTube subscriptions for new videos (since last run),
 __author__ = 'Chris Pedro'
 __copyright__ = '(c) Chris Pedro 2020'
 __licence__ = 'MIT'
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 
 
 import argparse
@@ -65,17 +65,24 @@ def load_last_run():
     try:
         with open(last_run_file, 'rb') as fp:
             last_run = pickle.load(fp)
+            # Backwards compatibility w/ <0.0.2 when last_run was a datetime.
+            if isinstance(last_run, datetime):
+                last_run = {'found_videos': [], 'last_run': last_run}
     except FileNotFoundError:
         # If there is no last run, tell program it was X days ago.
-        last_run = datetime.now(timezone.utc) - timedelta(days=days_ago)
+        last_run = {
+            'found_videos': [],
+            'last_run': datetime.now(timezone.utc) - timedelta(days=days_ago)}
     return last_run
 
 
-def save_last_run():
+def save_last_run(found_videos):
     """Save 'last run', which is just the current time to file.
     """
+    last_run = {
+        'found_videos': found_videos, 'last_run': datetime.now(timezone.utc)}
     with open(last_run_file, 'wb') as fp:
-        pickle.dump(datetime.now(timezone.utc), fp, pickle.HIGHEST_PROTOCOL)
+        pickle.dump(last_run, fp, pickle.HIGHEST_PROTOCOL)
 
 
 def load_subscriptions():
@@ -211,7 +218,10 @@ def main(args):
     """Main method.
     """
     args = parse_args(args)
+
     last_run = load_last_run()
+    last_runtime = last_run['last_run']
+    last_found_videos = last_run['found_videos']
 
     # Authenticate and get subs.
     client = authenticate(args.secrets_file)
@@ -221,7 +231,8 @@ def main(args):
         print(json.dumps(subs))
 
     if args.verbose:
-        print('Last run: {}'.format(last_run.strftime('%Y-%m-%d %H:%M:%S%Z')))
+        print('Last run: {}'.format(
+            last_runtime.strftime('%Y-%m-%d %H:%M:%S%Z')))
         print('Searching {} channels for new videos.'.format(len(subs)))
         print('==========================================================')
 
@@ -240,7 +251,7 @@ def main(args):
             details = video['contentDetails']
             published = dateutil.parser.isoparse(details['videoPublishedAt'])
             # Give 1 hour as a bit of a buffer to last run.
-            if published > last_run - timedelta(minutes=last_run_buffer):
+            if published > last_runtime - timedelta(minutes=last_run_buffer):
                 channel_videos.append(details)
 
         if args.verbose:
@@ -260,6 +271,9 @@ def main(args):
         added = 0
         skipped = 0
         for video in new_videos:
+            if video in last_found_videos:
+                skipped += 1
+                continue
             try:
                 # ID for Watch later is always 'WL'.
                 add_video_to_playlist(client, video['videoId'], 'WL')
@@ -270,13 +284,13 @@ def main(args):
         if args.verbose:
             print('==========================================================')
             print(('{} videos added.\n'
-                   '{} videos already in the playlist.').format(
+                   '{} videos already added to playlist.').format(
                 added, skipped))
     elif args.verbose:
         print('==========================================================')
         print('No Videos to add.')
 
-    save_last_run()
+    save_last_run(new_videos)
 
 
 def handler(signal_received, frame):
