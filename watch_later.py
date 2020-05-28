@@ -6,10 +6,10 @@ Description: Searches YouTube subscriptions for new videos (since last run),
     and adds any new videos to 'Water Later' playlist.
 """
 
+
 __author__ = 'Chris Pedro'
 __copyright__ = '(c) Chris Pedro 2020'
 __licence__ = 'MIT'
-__version__ = '0.0.3'
 
 
 import argparse
@@ -18,183 +18,11 @@ import googleapiclient.discovery
 import googleapiclient.errors
 import json
 import os
-import pickle
 import sys
 
-from datetime import datetime, timedelta, timezone
-from google_auth_oauthlib.flow import InstalledAppFlow
-from pathlib import Path
+from datetime import timedelta
 from signal import signal, SIGINT
-
-
-# YouTube API settings.
-api_service_name = 'youtube'
-api_version = 'v3'
-scopes = ['https://www.googleapis.com/auth/youtube']
-
-# Files used to save states between runs.
-config_path = os.path.join(
-    str(Path.home()), '.config', 'youtube_subscription_search')
-credentials_file = os.path.join(config_path, 'credentials')
-last_run_file = os.path.join(config_path, 'last_run')
-subs_file = os.path.join(config_path, 'subscriptions')
-
-# If last_run doesn't exist, set this many days ago to default value.
-days_ago = 3
-# Buffer for last_run to compare to new videos, in minutes.
-last_run_buffer = 60
-
-
-def load_credentials():
-    """Load saved credentials from file.
-    """
-    with open(credentials_file, 'rb') as fp:
-        return pickle.load(fp)
-
-
-def save_crendentials(credentials):
-    """Save credentials to file.
-    """
-    with open(credentials_file, 'wb') as fp:
-        pickle.dump(credentials, fp, pickle.HIGHEST_PROTOCOL)
-
-
-def load_last_run():
-    """Load last run time from file.
-    """
-    try:
-        with open(last_run_file, 'rb') as fp:
-            last_run = pickle.load(fp)
-            # Backwards compatibility w/ <0.0.2 when last_run was a datetime.
-            if isinstance(last_run, datetime):
-                last_run = {'found_videos': [], 'last_run': last_run}
-    except FileNotFoundError:
-        # If there is no last run, tell program it was X days ago.
-        last_run = {
-            'found_videos': [],
-            'last_run': datetime.now(timezone.utc) - timedelta(days=days_ago)}
-    return last_run
-
-
-def save_last_run(found_videos):
-    """Save 'last run', which is just the current time to file.
-    """
-    last_run = {
-        'found_videos': found_videos, 'last_run': datetime.now(timezone.utc)}
-    with open(last_run_file, 'wb') as fp:
-        pickle.dump(last_run, fp, pickle.HIGHEST_PROTOCOL)
-
-
-def load_subscriptions():
-    """Load subscriptions from file.
-    """
-    with open(subs_file, 'rb') as fp:
-        return pickle.load(fp)
-
-
-def save_subscriptions(subs):
-    """Save subscribers to file.
-    """
-    with open(subs_file, 'wb') as fp:
-        pickle.dump(subs, fp, pickle.HIGHEST_PROTOCOL)
-
-
-def authenticate(secrets_file):
-    """Authenticate to YouTube.  This will try and load saved credentials first
-    and if it's not successful it will prompt the user for access and save
-    credentials for the next run.
-    """
-    try:
-        credentials = load_credentials()
-    except FileNotFoundError:
-        flow = InstalledAppFlow.from_client_secrets_file(secrets_file, scopes)
-        credentials = flow.run_console()
-        save_crendentials(credentials)
-
-    return googleapiclient.discovery.build(
-        api_service_name, api_version, credentials=credentials)
-
-
-def get_playlist_by_name(client, name):
-    """Get a playlist by its name.
-    """
-    request = client.channels().list(
-        part='contentDetails',
-        mine=True)
-    channel_info = request.execute()
-    playlists = channel_info['items'][0]['contentDetails']['relatedPlaylists']
-    return playlists[name]
-
-
-def get_subs(client, **kwargs):
-    """Get a user's subscripber information.
-    """
-    if 'refresh_subs' not in kwargs or not kwargs['refresh_subs']:
-        try:
-            return load_subscriptions()
-        except FileNotFoundError:
-            pass
-
-    max_results = 50
-    nextPage = ''
-    subs = []
-
-    # First get all subscriptions.
-    while True:
-        request = client.subscriptions().list(
-            part='snippet,contentDetails',
-            pageToken=nextPage,
-            maxResults=max_results,
-            mine=True)
-        sub_list = request.execute()
-
-        subs.extend(sub['snippet'] for sub in sub_list['items'])
-
-        try:
-            nextPage = sub_list['nextPageToken']
-        except BaseException:
-            break
-
-    # Next loop through subs and get their public playlists.
-    for sub in subs:
-        request = client.channels().list(
-            part='contentDetails',
-            id=sub['resourceId']['channelId'])
-        channel_info = request.execute()
-        content_details = channel_info['items'][0]['contentDetails']
-        sub['playlists'] = content_details['relatedPlaylists']
-
-    # Save subscribers to file before returning.
-    save_subscriptions(subs)
-    return subs
-
-
-def get_channel_uploads(client, channel):
-    """Get last 10 uploads from a channel.
-    """
-    # Only get the last 10 uploads.
-    max_results = 10
-
-    request = client.playlistItems().list(
-        part='contentDetails',
-        maxResults=max_results,
-        playlistId=channel['playlists']['uploads'])
-    uploads = request.execute()
-    return uploads['items']
-
-
-def add_video_to_playlist(client, video_id, playlist):
-    """Add a video to a playlist.
-    """
-    request = client.playlistItems().insert(
-        part='snippet',
-        body={
-            'snippet': {
-                'playlistId': playlist,
-                'resourceId': {
-                    'kind': 'youtube#video',
-                    'videoId': video_id}}})
-    return request.execute()
+from youtube_search import YouTubeSearch
 
 
 def parse_args(args):
@@ -218,14 +46,14 @@ def main(args):
     """Main method.
     """
     args = parse_args(args)
+    api = YouTubeSearch(secrets_file=args.secrets_file)
 
-    last_run = load_last_run()
+    last_run = api.load_last_run()
     last_runtime = last_run['last_run']
     last_found_videos = last_run['found_videos']
 
-    # Authenticate and get subs.
-    client = authenticate(args.secrets_file)
-    subs = get_subs(client, refresh_subs=args.refresh_subscriptions)
+    # Get subscriptions.
+    subs = api.get_subs(refresh_subs=args.refresh_subscriptions)
 
     if args.debug:
         print(json.dumps(subs))
@@ -241,7 +69,7 @@ def main(args):
     for channel in subs:
         if args.verbose:
             print('Searching {}.'.format(channel['title']))
-        uploads = get_channel_uploads(client, channel)
+        uploads = api.get_channel_uploads(channel)
         channel_videos = []
 
         if args.debug:
@@ -251,7 +79,8 @@ def main(args):
             details = video['contentDetails']
             published = dateutil.parser.isoparse(details['videoPublishedAt'])
             # Give 1 hour as a bit of a buffer to last run.
-            if published > last_runtime - timedelta(minutes=last_run_buffer):
+            if published > last_runtime - timedelta(
+                    minutes=api.settings.last_run_buffer):
                 channel_videos.append(details)
 
         if args.verbose:
@@ -276,7 +105,7 @@ def main(args):
                 continue
             try:
                 # ID for Watch later is always 'WL'.
-                add_video_to_playlist(client, video['videoId'], 'WL')
+                api.add_video_to_playlist(video['videoId'], 'WL')
                 added += 1
             except googleapiclient.errors.HttpError:
                 skipped += 1
@@ -290,7 +119,7 @@ def main(args):
         print('==========================================================')
         print('No Videos to add.')
 
-    save_last_run(new_videos)
+    api.save_last_run(new_videos)
 
 
 def handler(signal_received, frame):
@@ -300,10 +129,6 @@ def handler(signal_received, frame):
 
 
 if __name__ == '__main__':
-    # Create configuration direcotory if it doesn't exist.
-    if not os.path.exists(config_path):
-        os.makedirs(config_path)
-
     signal(SIGINT, handler)
     sys.exit(main(sys.argv[1:]))
 
