@@ -15,6 +15,9 @@ from pathlib import Path
 
 
 class Settings(object):
+    """Settings class to hold various static values for YouTube Search.
+    """
+
     def __init__(self):
         """Initialise all properties.
         """
