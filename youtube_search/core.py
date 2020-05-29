@@ -20,13 +20,16 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 
 
 class YouTubeSearch(object):
+    """YouTubeSearch class to perform various actions to search and update
+    playlists.
+    """
 
     def __init__(self, secrets_file='client_id.json'):
         """Authenticate to YouTube.  This will try and load saved credentials
         first and if it's not successful it will prompt the user for access and
         save credentials for the next run.
         """
-        self.settings = Settings()
+        self._settings = Settings()
         # Create configuration direcotory if it doesn't exist.
         if not os.path.exists(self.settings.config_path):
             os.makedirs(self.settings.config_path)
@@ -39,29 +42,23 @@ class YouTubeSearch(object):
             creds = flow.run_console()
             self.save_crendentials(creds)
 
-        self.client = googleapiclient.discovery.build(
+        self._client = googleapiclient.discovery.build(
             self.settings.api_service_name, self.settings.api_version,
             credentials=creds)
 
 
     @property
     def client(self):
+        """YouTube client to use for all API calls.
+        """
         return self._client
-
-
-    @client.setter
-    def client(self, client):
-        self._client = client
 
 
     @property
     def settings(self):
+        """Settings to use.
+        """
         return self._settings
-
-
-    @settings.setter
-    def settings(self, settings):
-        self._settings = settings
 
 
     def load_credentials(self):

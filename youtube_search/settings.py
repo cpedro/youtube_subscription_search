@@ -16,6 +16,8 @@ from pathlib import Path
 
 class Settings(object):
     def __init__(self):
+        """Initialise all properties.
+        """
         # YouTube API settings.
         self._api_service_name = 'youtube'
         self._api_version = 'v3'
@@ -36,45 +38,65 @@ class Settings(object):
 
     @property
     def api_service_name(self):
+        """The API Service name, 'youtube'
+        """
         return self._api_service_name
 
 
     @property
     def api_version(self):
+        """The API version, 'v3'
+        """
         return self._api_version
 
 
     @property
     def api_scopes(self):
+        """The API scope, ['https://www.googleapis.com/auth/youtube']
+        """
         return self._api_scopes
 
 
     @property
     def config_path(self):
+        """The configuration path, ${HOME}/.config/youtube_subscription_search
+        """
         return self._config_path
 
 
     @property
     def credentials_file(self):
+        """File containing saved credentials, <config_path>/credentials
+        """
         return self._credentials_file
 
 
     @property
     def last_run_file(self):
+        """File containing last run information, <config_path>/last_run
+        """
         return self._last_run_file
 
 
     @property
     def subs_file(self):
+        """File containing cached subscriptions, <config_path>/subscriptions
+        """
         return self._subs_file
 
 
     @property
     def days_ago(self):
+        """If last_run doesn't exist, set this many days ago to run off of
+        default = 3
+        """
         return self._days_ago
 
 
     @property
     def last_run_buffer(self):
+        """Buffer for last_run to compare to new videos, in minutes.
+        default = 60
+        """
         return self._last_run_buffer
 
