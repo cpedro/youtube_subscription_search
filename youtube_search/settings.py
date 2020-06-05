@@ -38,13 +38,11 @@ class Settings(object):
         # Buffer for last_run to compare to new videos, in minutes.
         self._last_run_buffer = 60
 
-
     @property
     def api_service_name(self):
         """The API Service name, 'youtube'
         """
         return self._api_service_name
-
 
     @property
     def api_version(self):
@@ -52,13 +50,11 @@ class Settings(object):
         """
         return self._api_version
 
-
     @property
     def api_scopes(self):
         """The API scope, ['https://www.googleapis.com/auth/youtube']
         """
         return self._api_scopes
-
 
     @property
     def config_path(self):
@@ -66,13 +62,11 @@ class Settings(object):
         """
         return self._config_path
 
-
     @property
     def credentials_file(self):
         """File containing saved credentials, <config_path>/credentials
         """
         return self._credentials_file
-
 
     @property
     def last_run_file(self):
@@ -80,13 +74,11 @@ class Settings(object):
         """
         return self._last_run_file
 
-
     @property
     def subs_file(self):
         """File containing cached subscriptions, <config_path>/subscriptions
         """
         return self._subs_file
-
 
     @property
     def days_ago(self):
@@ -94,7 +86,6 @@ class Settings(object):
         default = 3
         """
         return self._days_ago
-
 
     @property
     def last_run_buffer(self):

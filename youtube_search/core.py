@@ -46,13 +46,11 @@ class YouTubeSearch(object):
             self.settings.api_service_name, self.settings.api_version,
             credentials=creds)
 
-
     @property
     def client(self):
         """YouTube client to use for all API calls.
         """
         return self._client
-
 
     @property
     def settings(self):
@@ -60,20 +58,17 @@ class YouTubeSearch(object):
         """
         return self._settings
 
-
     def load_credentials(self):
         """Load saved credentials from file.
         """
         with open(self.settings.credentials_file, 'rb') as fp:
             return pickle.load(fp)
 
-
     def save_crendentials(self, credentials):
         """Save credentials to file.
         """
         with open(self.settings.credentials_file, 'wb') as fp:
             pickle.dump(credentials, fp, pickle.HIGHEST_PROTOCOL)
-
 
     def load_last_run(self):
         """Load last run time from file.
@@ -92,7 +87,6 @@ class YouTubeSearch(object):
                     days=self.settings.days_ago)}
         return last_run
 
-
     def save_last_run(self, found_videos):
         """Save 'last run', which is just the current time to file.
         """
@@ -102,20 +96,17 @@ class YouTubeSearch(object):
         with open(self.settings.last_run_file, 'wb') as fp:
             pickle.dump(last_run, fp, pickle.HIGHEST_PROTOCOL)
 
-
     def load_subscriptions(self):
         """Load subscriptions from file.
         """
         with open(self.settings.subs_file, 'rb') as fp:
             return pickle.load(fp)
 
-
     def save_subscriptions(self, subs):
         """Save subscribers to file.
         """
         with open(self.settings.subs_file, 'wb') as fp:
             pickle.dump(subs, fp, pickle.HIGHEST_PROTOCOL)
-
 
     def get_playlist_by_name(self, name):
         """Get a playlist by its name.
@@ -126,7 +117,6 @@ class YouTubeSearch(object):
         channel_info = request.execute()
         playlists = channel_info['items'][0]['contentDetails']['relatedPlaylists']
         return playlists[name]
-
 
     def get_subs(self, **kwargs):
         """Get a user's subscripber information.
@@ -170,7 +160,6 @@ class YouTubeSearch(object):
         self.save_subscriptions(subs)
         return subs
 
-
     def get_channel_uploads(self, channel):
         """Get last 10 uploads from a channel.
         """
@@ -183,7 +172,6 @@ class YouTubeSearch(object):
             playlistId=channel['playlists']['uploads'])
         uploads = request.execute()
         return uploads['items']
-
 
     def add_video_to_playlist(self, video_id, playlist):
         """Add a video to a playlist.

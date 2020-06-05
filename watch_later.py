@@ -17,7 +17,6 @@ import dateutil.parser
 import googleapiclient.discovery
 import googleapiclient.errors
 import json
-import os
 import sys
 
 from datetime import timedelta
@@ -93,9 +92,8 @@ def main(args):
 
     # Add new videos to Watch later playlist.
     if len(new_videos):
-        if args.verbose:
-            print('==========================================================')
-            print('Adding {} videos to Watch Later'.format(len(new_videos)))
+        print('==========================================================')
+        print('Adding {} videos to Watch Later'.format(len(new_videos)))
 
         added = 0
         skipped = 0
@@ -110,14 +108,12 @@ def main(args):
             except googleapiclient.errors.HttpError:
                 skipped += 1
 
-        if args.verbose:
-            print('==========================================================')
-            print(('{} videos added.\n'
-                   '{} videos already added to playlist.').format(
-                added, skipped))
-    elif args.verbose:
         print('==========================================================')
-        print('No Videos to add.')
+        print(('{} videos added.\n'
+               '{} videos already added to playlist.').format(added, skipped))
+    else:
+        print('==========================================================')
+        print('No videos to add.')
 
     api.save_last_run(new_videos)
 
