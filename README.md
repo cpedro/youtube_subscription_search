@@ -95,8 +95,6 @@ optional arguments:
   -d, --debug           Debug output
 ```
 
-
-
 ### Cached files
 
 The program will save subscriptions, security tokens and last run information in
@@ -104,4 +102,12 @@ The program will save subscriptions, security tokens and last run information in
 `%userprofile%\.config\youtube_subscription_search` in Windows).  If you ever
 decide to uninstall this program, you can safely delete this config / cache
 directory as well to tie up the loose ends.
+
+## TODO
+
+* Add seperate run mode just to edit settings and update subscriptions, without
+having to do a full search run.
+* Add subscription cache date/time, and also automatically refresh after X days
+since last update.
+* Add option to customise playlist videos are saved to.
 
