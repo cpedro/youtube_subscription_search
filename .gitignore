@@ -1,3 +1,6 @@
+# Ignore IDEA files
+.idea
+
 # Sublime files
 *.sublime-project
 *.sublime-workspace

@@ -34,9 +34,12 @@ class Settings(object):
         self._subs_file = os.path.join(self._config_path, 'subscriptions')
 
         # If last_run doesn't exist, set this many days ago to default value.
-        self._days_ago = 3
+        self._last_run_days_ago = 3
         # Buffer for last_run to compare to new videos, in minutes.
         self._last_run_buffer = 60
+
+        # If subscriptions are this many days old, force a sub refresh.
+        self._subs_days_old = 14
 
     @property
     def api_service_name(self):
@@ -81,11 +84,11 @@ class Settings(object):
         return self._subs_file
 
     @property
-    def days_ago(self):
+    def last_run_days_ago(self):
         """If last_run doesn't exist, set this many days ago to run off of
         default = 3
         """
-        return self._days_ago
+        return self._last_run_days_ago
 
     @property
     def last_run_buffer(self):
@@ -93,4 +96,11 @@ class Settings(object):
         default = 60
         """
         return self._last_run_buffer
+
+    @property
+    def subs_days_old(self):
+        """If subscriptions are this many days old, force a sub refresh.
+        default = 14
+        """
+        return self._subs_days_old
 

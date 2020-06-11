@@ -33,7 +33,10 @@ def parse_args(args):
         help='Client secret file.  See README.md on how to get this file.')
     parser.add_argument(
         '-r', '--refresh-subscriptions', action='store_true',
-        help='Force a refresh of subscriptions.')
+        help='Force a refresh of subscriptions, and search subs.')
+    parser.add_argument(
+        '-R', '--just-refresh-subscriptions', action='store_true',
+        help='Refresh subscriptions, and do not search subs.')
     parser.add_argument(
         '-v', '--verbose', action='store_true', help='Verbose output')
     parser.add_argument(
@@ -50,17 +53,21 @@ def main(args):
     last_run = api.load_last_run()
     last_runtime = last_run['last_run']
     last_found_videos = last_run['found_videos']
+    refresh = args.refresh_subscriptions or args.just_refresh_subscriptions
 
     # Get subscriptions.
-    subs = api.get_subs(refresh_subs=args.refresh_subscriptions)
+    subs = api.get_subs(refresh_subs=refresh)
+
+    if args.just_refresh_subscriptions:
+        return
 
     if args.debug:
         print(json.dumps(subs))
 
     if args.verbose:
-        print('Last run: {}'.format(
-            last_runtime.strftime('%Y-%m-%d %H:%M:%S%Z')))
-        print('Searching {} channels for new videos.'.format(len(subs)))
+        print(('Last run: {}\n'
+               'Searching {} channels for new videos.'.format(
+                last_runtime.strftime('%Y-%m-%d %H:%M:%S%Z'), len(subs))))
         print('==========================================================')
 
     # Search for new videos in subs.
@@ -92,8 +99,8 @@ def main(args):
 
     # Add new videos to Watch later playlist.
     if len(new_videos):
-        print('==========================================================')
-        print('Adding {} videos to Watch Later'.format(len(new_videos)))
+        print(('==========================================================\n'
+               'Adding {} videos to Watch Later'.format(len(new_videos))))
 
         added = 0
         skipped = 0
@@ -108,18 +115,18 @@ def main(args):
             except googleapiclient.errors.HttpError:
                 skipped += 1
 
-        print('==========================================================')
-        print(('{} videos added.\n'
+        print(('==========================================================\n'
+               '{} videos added.\n'
                '{} videos already added to playlist.').format(added, skipped))
     else:
-        print('==========================================================')
-        print('No videos to add.')
+        print(('==========================================================\n'
+               'No videos to add.'))
 
     api.save_last_run(new_videos)
 
 
 def handler(signal_received, frame):
-    """Signal handler. Allows ^C to interupt cleanly.
+    """Signal handler. Allows ^C to interrupt cleanly.
     """
     sys.exit(0)
 

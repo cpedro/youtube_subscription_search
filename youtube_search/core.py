@@ -30,7 +30,7 @@ class YouTubeSearch(object):
         save credentials for the next run.
         """
         self._settings = Settings()
-        # Create configuration direcotory if it doesn't exist.
+        # Create configuration directory if it doesn't exist.
         if not os.path.exists(self.settings.config_path):
             os.makedirs(self.settings.config_path)
 
@@ -76,7 +76,7 @@ class YouTubeSearch(object):
         try:
             with open(self.settings.last_run_file, 'rb') as fp:
                 last_run = pickle.load(fp)
-                # Backwards compatibility w/ <0.0.2 when last_run was atetime.
+                # Backwards compatibility w/ <0.0.2 when last_run was datetime.
                 if isinstance(last_run, datetime):
                     last_run = {'found_videos': [], 'last_run': last_run}
         except FileNotFoundError:
@@ -84,15 +84,15 @@ class YouTubeSearch(object):
             last_run = {
                 'found_videos': [],
                 'last_run': datetime.now(timezone.utc) - timedelta(
-                    days=self.settings.days_ago)}
+                    days=self.settings.last_run_days_ago)}
         return last_run
 
     def save_last_run(self, found_videos):
         """Save 'last run', which is just the current time to file.
         """
         last_run = {
-            'found_videos': found_videos,
-            'last_run': datetime.now(timezone.utc)}
+            'last_run': datetime.now(timezone.utc),
+            'found_videos': found_videos}
         with open(self.settings.last_run_file, 'wb') as fp:
             pickle.dump(last_run, fp, pickle.HIGHEST_PROTOCOL)
 
@@ -105,8 +105,11 @@ class YouTubeSearch(object):
     def save_subscriptions(self, subs):
         """Save subscribers to file.
         """
+        sub_info = {
+            'last_update': datetime.now(timezone.utc),
+            'subscriptions': subs}
         with open(self.settings.subs_file, 'wb') as fp:
-            pickle.dump(subs, fp, pickle.HIGHEST_PROTOCOL)
+            pickle.dump(sub_info, fp, pickle.HIGHEST_PROTOCOL)
 
     def get_playlist_by_name(self, name):
         """Get a playlist by its name.
@@ -115,27 +118,35 @@ class YouTubeSearch(object):
             part='contentDetails',
             mine=True)
         channel_info = request.execute()
-        playlists = channel_info['items'][0]['contentDetails']['relatedPlaylists']
+        content_details = channel_info['items'][0]['contentDetails']
+        playlists = content_details['relatedPlaylists']
         return playlists[name]
 
     def get_subs(self, **kwargs):
-        """Get a user's subscripber information.
+        """Get a user's subscriber information.
         """
         if 'refresh_subs' not in kwargs or not kwargs['refresh_subs']:
             try:
-                return self.load_subscriptions()
+                s_subs = self.load_subscriptions()
+                # Backwards compatibility w/ <v0.2.0, will force sub reload.
+                if type(s_subs) in [dict, set]:
+                    if 'last_update' not in s_subs:
+                        return s_subs['subscriptions']
+                    elif (s_subs['last_update'] > datetime.now(timezone.utc)
+                          - timedelta(days=self.settings.subs_days_old)):
+                        return s_subs['subscriptions']
             except FileNotFoundError:
                 pass
 
         max_results = 50
-        nextPage = ''
+        next_page = ''
         subs = []
 
         # First get all subscriptions.
         while True:
             request = self.client.subscriptions().list(
                 part='snippet,contentDetails',
-                pageToken=nextPage,
+                pageToken=next_page,
                 maxResults=max_results,
                 mine=True)
             sub_list = request.execute()
@@ -143,7 +154,7 @@ class YouTubeSearch(object):
             subs.extend(sub['snippet'] for sub in sub_list['items'])
 
             try:
-                nextPage = sub_list['nextPageToken']
+                next_page = sub_list['nextPageToken']
             except BaseException:
                 break
 

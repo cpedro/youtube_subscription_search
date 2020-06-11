@@ -52,14 +52,17 @@ def main(args):
         print(json.dumps(last_run))
 
     with open(settings.subs_file, 'rb') as fp:
-        print(json.dumps({
+        subs = {
             'configuration': 'Subscriptions',
-            'config_file': settings.subs_file,
-            'subscriptions': pickle.load(fp)}))
+            'config_file': settings.subs_file}
+        subs.update(pickle.load(fp))
+        subs['last_update'] = subs['last_update'].strftime(
+            '%Y-%m-%d %H:%M:%S%Z')
+        print(json.dumps(subs))
 
 
 def handler(signal_received, frame):
-    """Signal handler. Allows ^C to interupt cleanly.
+    """Signal handler. Allows ^C to interrupt cleanly.
     """
     sys.exit(0)
 
