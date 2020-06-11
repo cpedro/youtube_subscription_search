@@ -40,7 +40,7 @@ class YouTubeSearch(object):
             flow = InstalledAppFlow.from_client_secrets_file(
                 secrets_file, self.settings.api_scopes)
             creds = flow.run_console()
-            self.save_crendentials(creds)
+            self.save_credentials(creds)
 
         self._client = googleapiclient.discovery.build(
             self.settings.api_service_name, self.settings.api_version,
@@ -64,7 +64,7 @@ class YouTubeSearch(object):
         with open(self.settings.credentials_file, 'rb') as fp:
             return pickle.load(fp)
 
-    def save_crendentials(self, credentials):
+    def save_credentials(self, credentials):
         """Save credentials to file.
         """
         with open(self.settings.credentials_file, 'wb') as fp:
