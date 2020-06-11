@@ -45,8 +45,8 @@ information.
 ## Running the program
 
 Once the `client_id.json` file has been downloaded and saved to the same
-directory as the program, you're good to go.  Just run `./watch_later.py` or
-`python3 watch_later.py`.
+directory as the program, you're good to go.  Just run `./yt_watch_later.py` or
+`python3 yt_watch_later.py`.
 
 You don't *need* to move `client_id.json` to the same directory, you also use
 then `-s` option when calling the program with a path to the file.  This file
@@ -73,17 +73,17 @@ and used again in subsequent calls of the program.
   update your subscriptions at any time, such as subbing or unsubbing to 
   channels, you will need to refresh the cached data by running:
   ```bash
-  watch_later.py -r
+  yt_watch_later.py -r
   ```
 * If you want to see a more verbose output, and see what the program is doing,
   you can specify the `-v` command line option:
   ```bash
-  watch_later.py -v
+  yt_watch_later.py -v
   ```
 
 ### General Usage
 ```
-usage: watch_later.py [-h] [-s SECRETS_FILE] [-r] [-v] [-d]
+usage: yt_watch_later.py [-h] [-s SECRETS_FILE] [-r] [-R] [-v] [-d]
 
 YouTube Subscription Search
 
@@ -93,7 +93,9 @@ optional arguments:
                         Client secret file. See README.md on how to get this
                         file.
   -r, --refresh-subscriptions
-                        Force a refresh of subscriptions.
+                        Force a refresh of subscriptions, and search subs.
+  -R, --just-refresh-subscriptions
+                        Refresh subscriptions, and do not search subs.
   -v, --verbose         Verbose output
   -d, --debug           Debug output
 ```
