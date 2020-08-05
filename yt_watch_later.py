@@ -65,10 +65,11 @@ def main(args):
         print(json.dumps(subs))
 
     if args.verbose:
-        print(('Last run: {}\n'
-               'Searching {} channels for new videos.'.format(
-                last_runtime.strftime('%Y-%m-%d %H:%M:%S%Z'), len(subs))))
-        print('==========================================================')
+        msg = 'Last run: {}\n'
+        'Searching {} channels for new videos.\n'
+        '=========================================================='
+        print((msg.format(
+            last_runtime.strftime('%Y-%m-%d %H:%M:%S%Z'), len(subs))))
 
     # Search for new videos in subs.
     new_videos = []

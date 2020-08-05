@@ -12,7 +12,6 @@ __licence__ = 'MIT'
 
 
 import json
-import os
 import pickle
 import sys
 

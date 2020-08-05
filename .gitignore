@@ -1,6 +1,9 @@
 # Ignore IDEA files
 .idea
 
+# Ignore Jupyter Notebooks
+*.ipynb
+
 # Sublime files
 *.sublime-project
 *.sublime-workspace
