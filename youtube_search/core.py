@@ -36,15 +36,16 @@ class YouTubeSearch(object):
 
         try:
             creds = self.load_credentials()
-        except FileNotFoundError:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                secrets_file, self.settings.api_scopes)
-            creds = flow.run_console()
+            self.build_client(creds)
+            # Try and list 'my' channel, if this fails, will re-auth.
+            request = self.client.channels().list(
+                part="snippet,statistics",
+                mine=True)
+            request.execute()
+        except Exception:
+            creds = self.auth_client(secrets_file)
+            self.build_client(creds)
             self.save_credentials(creds)
-
-        self._client = googleapiclient.discovery.build(
-            self.settings.api_service_name, self.settings.api_version,
-            credentials=creds)
 
     @property
     def client(self):
@@ -57,6 +58,21 @@ class YouTubeSearch(object):
         """Settings to use.
         """
         return self._settings
+
+    def auth_client(self, secrets_file):
+        """Authenticate against YouTube's API and return the credentials
+        captured.
+        """
+        flow = InstalledAppFlow.from_client_secrets_file(
+            secrets_file, self.settings.api_scopes)
+        return flow.run_console()
+
+    def build_client(self, creds):
+        """Build the API client to use.  This requires credentials to use.
+        """
+        self._client = googleapiclient.discovery.build(
+            self.settings.api_service_name, self.settings.api_version,
+            credentials=creds)
 
     def load_credentials(self):
         """Load saved credentials from file.
