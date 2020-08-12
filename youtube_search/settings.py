@@ -36,8 +36,7 @@ class Settings(object):
         # If last_run doesn't exist, set this many days ago to default value.
         self._last_run_days_ago = 3
         # Buffer for last_run to compare to new videos, in minutes.
-        self._last_run_buffer = 60
-
+        self._last_run_buffer = 180
         # If subscriptions are this many days old, force a sub refresh.
         self._subs_days_old = 14
 
@@ -93,7 +92,7 @@ class Settings(object):
     @property
     def last_run_buffer(self):
         """Buffer for last_run to compare to new videos, in minutes.
-        default = 60
+        default = 180
         """
         return self._last_run_buffer
 

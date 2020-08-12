@@ -85,7 +85,8 @@ def main(args):
         for video in uploads:
             details = video['contentDetails']
             published = dateutil.parser.isoparse(details['videoPublishedAt'])
-            # Give 1 hour as a bit of a buffer to last run.
+            # Give a bit of a buffer to last run. This is needed because videos
+            # sometimes take a while to appear in the API.
             if published > last_runtime - timedelta(
                     minutes=api.settings.last_run_buffer):
                 channel_videos.append(details)
