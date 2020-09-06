@@ -44,26 +44,19 @@ def parse_args(args):
     return parser.parse_args(args)
 
 
-def main(args):
-    """Main method.
+def get_user_subs(api, args):
+    """Get the user's subscriptions.
     """
-    args = parse_args(args)
-    api = YouTubeSearch(secrets_file=args.secrets_file)
-
-    last_run = api.load_last_run()
-    last_runtime = last_run['last_run']
-    last_found_videos = last_run['found_videos']
     refresh = args.refresh_subscriptions or args.just_refresh_subscriptions
-
-    # Get subscriptions.
-    subs = api.get_subs(refresh_subs=refresh)
-
-    if args.just_refresh_subscriptions:
-        return
-
+    subs = api.get_user_subs(refresh_subs=refresh)
     if args.debug:
         print(json.dumps(subs))
+    return subs
 
+
+def get_new_videos(api, args, subs, last_runtime):
+    """Get new viedoes uploaded since last run from subscriptions.
+    """
     if args.verbose:
         msg = 'Last run: {}\n'
         'Searching {} channels for new videos.\n'
@@ -71,7 +64,6 @@ def main(args):
         print((msg.format(
             last_runtime.strftime('%Y-%m-%d %H:%M:%S%Z'), len(subs))))
 
-    # Search for new videos in subs.
     new_videos = []
     for channel in subs:
         if args.verbose:
@@ -99,20 +91,24 @@ def main(args):
     if args.debug:
         print(json.dumps(new_videos))
 
-    # Add new videos to Watch later playlist.
+    return new_videos
+
+
+def add_new_videos_to_playlist(api, pl_name, pl_id, new_videos, last_videos):
+    """Add all new videos to the selected playlist to be watched later.
+    """
     if len(new_videos):
         print(('==========================================================\n'
-               'Adding {} videos to Watch Later'.format(len(new_videos))))
+               'Adding {} videos to {}'.format(len(new_videos), pl_name)))
 
         added = 0
         skipped = 0
         for video in new_videos:
-            if video in last_found_videos:
+            if video in last_videos:
                 skipped += 1
                 continue
             try:
-                # ID for Watch later is always 'WL'.
-                api.add_video_to_playlist(video['videoId'], 'WL')
+                api.add_video_to_playlist(video['videoId'], pl_id)
                 added += 1
             except googleapiclient.errors.HttpError:
                 skipped += 1
@@ -124,6 +120,27 @@ def main(args):
         print(('==========================================================\n'
                'No videos to add.'))
 
+
+def main(args):
+    """Main method.
+    """
+    args = parse_args(args)
+    api = YouTubeSearch(secrets_file=args.secrets_file)
+
+    last_run = api.load_last_run()
+    last_runtime = last_run['last_run']
+    last_videos = last_run['found_videos']
+
+    # TODO: Remove hardcode for Watch Later.
+    pl_name = 'Watch Later'
+    pl_id = 'WL'
+
+    subs = get_user_subs(api, args)
+    if args.just_refresh_subscriptions:
+        return
+
+    new_videos = get_new_videos(api, args, subs, last_runtime)
+    add_new_videos_to_playlist(api, pl_name, pl_id, new_videos, last_videos)
     api.save_last_run(new_videos)
 
 
