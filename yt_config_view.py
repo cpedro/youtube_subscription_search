@@ -50,6 +50,15 @@ def main(args):
             '%Y-%m-%d %H:%M:%S%Z')
         print(json.dumps(last_run))
 
+    with open(settings.dest_pl_file, 'rb') as fp:
+        dest_playlist = {
+            'configuration': 'Destination Playlist',
+            'config_file': settings.dest_pl_file}
+        dest_playlist.update(pickle.load(fp))
+        dest_playlist['last_update'] = dest_playlist['last_update'].strftime(
+            '%Y-%m-%d %H:%M:%S%Z')
+        print(json.dumps(dest_playlist))
+
     with open(settings.subs_file, 'rb') as fp:
         subs = {
             'configuration': 'Subscriptions',

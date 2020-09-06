@@ -2,7 +2,7 @@
 
 Searches all of your subscriptions for new videos, since the last time the
 program was run, or since 3 days ago.  If any videos were found, it will add
-them to your "Watch later" playlist.
+them to the playlist of your choice.
 
 ## Requirements
 To make sure you have all requirements:
@@ -65,33 +65,42 @@ enter.
 Once this is done once, an authorization token will be saved to you computer
 and used again in subsequent calls of the program.
 
+Also, the first time you run this program, you will be provided with a list of
+your playlists.  You can select which playlist to save videos to be selecting
+the index number from the list.  Just the number.  Any other value, and the
+program will ask you again.
+
 ## Important Notes
 
+* If you ever want to change which playlist videos are saved to, there are two
+  different command line options.
+  * `-p` - will prompt you for the playlist to save to, and continue to run.
+  * `-P` - will prompt, then exit without searching for videos.
 * This program will collect information about your subscriptions the first time
   it runs and use this cached information each time.  This is done to limit the
   amount of API calls it makes to avoid hitting Google API quotas.  If you 
   update your subscriptions at any time, such as subbing or unsubbing to 
-  channels, you will need to refresh the cached data by running:
-  ```bash
-  yt_watch_later.py -r
-  ```
-* If you want to see a more verbose output, and see what the program is doing,
-  you can specify the `-v` command line option:
-  ```bash
-  yt_watch_later.py -v
-  ```
+  channels, you will need to refresh the cached data by using either:
+  * `-r` - will refresh subscriptions and continue to run.
+  * `-R` - will refresh subscriptions, then exit without searching for videos.
+* If you want to see a more verbose output and see what the program is doing,
+  you can specify:
+  * `-v` - prints more verbose output.
+  * `-d` - prints out debug list information as JSON to sys.stderr.
 
 ### General Usage
 ```
-usage: yt_watch_later.py [-h] [-s SECRETS_FILE] [-r] [-R] [-v] [-d]
+usage: yt_watch_later.py [-h] [-s SECRETS_FILE] [-p] [-P] [-r] [-R] [-v] [-d]
 
 YouTube Subscription Search
 
 optional arguments:
   -h, --help            show this help message and exit
   -s SECRETS_FILE, --secrets-file SECRETS_FILE
-                        Client secret file. See README.md on how to get this
-                        file.
+                        Client secret file. See README.md on how to get this file.
+  -p, --set-playlist    Set the playlist to save videos to.
+  -P, --just-set-playlist
+                        Just set playlist to save videos to and exit.
   -r, --refresh-subscriptions
                         Force a refresh of subscriptions, and search subs.
   -R, --just-refresh-subscriptions
@@ -115,5 +124,5 @@ having to do a full search run.~~ v0.2.0 - Added `-R` switch
 * ~~Add subscription cache date/time, and also automatically refresh after X
 days since last update.~~ v0.2.0 - Now default, will force refresh every 14
 days
-* Add option to customise playlist videos are saved to.
+* ~~Add option to customise playlist videos are saved to.~~ - Added in v0.3.0
 

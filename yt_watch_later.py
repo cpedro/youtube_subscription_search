@@ -19,7 +19,7 @@ import googleapiclient.errors
 import json
 import sys
 
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 from signal import signal, SIGINT
 from youtube_search import YouTubeSearch
 
@@ -31,6 +31,12 @@ def parse_args(args):
     parser.add_argument(
         '-s', '--secrets-file', default='client_id.json',
         help='Client secret file.  See README.md on how to get this file.')
+    parser.add_argument(
+        '-p', '--set-playlist', action='store_true',
+        help='Set the playlist to save videos to.')
+    parser.add_argument(
+        '-P', '--just-set-playlist', action='store_true',
+        help='Just set playlist to save videos to and exit.')
     parser.add_argument(
         '-r', '--refresh-subscriptions', action='store_true',
         help='Force a refresh of subscriptions, and search subs.')
@@ -44,13 +50,60 @@ def parse_args(args):
     return parser.parse_args(args)
 
 
+def ask_for_dest_playlist(api, args):
+    """Prompt user for which playlist to save videos to.
+    """
+    playlists = api.get_user_playlists()
+    if args.debug:
+        print(json.dumps(playlists), file=sys.stderr)
+
+    good_index = False
+    while not good_index:
+        try:
+            print('0: Watch Later')
+            for i, pl in enumerate(playlists):
+                print('{}: {}'.format(i + 1, pl['title']))
+            pl = int(input('Enter playlist index: '))
+        except ValueError:
+            continue
+        good_index = (pl <= len(playlists) and pl >= 0)
+
+    # Hack to allow 'Watch Later'
+    if pl == 0:
+        return 'WL', 'Watch Later'
+    return playlists[pl - 1]['channelId'], playlists[pl - 1]['title']
+
+
+def get_dest_playlist(api, args):
+    """Gets the destination playlist to save to.
+    """
+    dest_playlist = api.load_dest_playlist()
+    if args.set_playlist or args.just_set_playlist or not dest_playlist:
+        pl_id, pl_name = ask_for_dest_playlist(api, args)
+        api.save_dest_playlist(pl_id, pl_name)
+        return pl_id, pl_name
+    return dest_playlist['id'], dest_playlist['name']
+
+
 def get_user_subs(api, args):
     """Get the user's subscriptions.
     """
-    refresh = args.refresh_subscriptions or args.just_refresh_subscriptions
-    subs = api.get_user_subs(refresh_subs=refresh)
-    if args.debug:
-        print(json.dumps(subs))
+    if not args.refresh_subscriptions and not args.just_refresh_subscriptions:
+        try:
+            s_subs = api.load_subscriptions()
+            # Backwards compatibility w/ <v0.2.0, will force sub reload.
+            if type(s_subs) in [dict, set]:
+                if 'last_update' not in s_subs:
+                    return s_subs['subscriptions']
+                elif (s_subs['last_update'] > datetime.now(timezone.utc)
+                      - timedelta(days=api.settings.subs_days_old)):
+                    return s_subs['subscriptions']
+        except FileNotFoundError:
+            pass
+
+    subs = api.get_user_subs()
+    api.save_subscriptions(subs)
+
     return subs
 
 
@@ -72,7 +125,7 @@ def get_new_videos(api, args, subs, last_runtime):
         channel_videos = []
 
         if args.debug:
-            print(json.dumps(uploads))
+            print(json.dumps(uploads), file=sys.stderr)
 
         for video in uploads:
             details = video['contentDetails']
@@ -87,9 +140,6 @@ def get_new_videos(api, args, subs, last_runtime):
             print('  Found {} videos.'.format(len(channel_videos)))
 
         new_videos.extend(channel_videos)
-
-    if args.debug:
-        print(json.dumps(new_videos))
 
     return new_videos
 
@@ -131,16 +181,22 @@ def main(args):
     last_runtime = last_run['last_run']
     last_videos = last_run['found_videos']
 
-    # TODO: Remove hardcode for Watch Later.
-    pl_name = 'Watch Later'
-    pl_id = 'WL'
+    pl_id, pl_name = get_dest_playlist(api, args)
+    if args.just_set_playlist:
+        return
 
     subs = get_user_subs(api, args)
+    if args.debug:
+        print(json.dumps(subs), file=sys.stderr)
     if args.just_refresh_subscriptions:
         return
 
     new_videos = get_new_videos(api, args, subs, last_runtime)
+    if args.debug:
+        print(json.dumps(new_videos), file=sys.stderr)
+
     add_new_videos_to_playlist(api, pl_name, pl_id, new_videos, last_videos)
+
     api.save_last_run(new_videos)
 
 

@@ -112,6 +112,25 @@ class YouTubeSearch(object):
         with open(self.settings.last_run_file, 'wb') as fp:
             pickle.dump(last_run, fp, pickle.HIGHEST_PROTOCOL)
 
+    def load_dest_playlist(self):
+        """Load plalists from file.
+        """
+        try:
+            with open(self.settings.dest_pl_file, 'rb') as fp:
+                return pickle.load(fp)
+        except FileNotFoundError:
+            return None
+
+    def save_dest_playlist(self, pl_id, pl_name):
+        """Save playslists to file.
+        """
+        pl_info = {
+            'last_update': datetime.now(timezone.utc),
+            'name': pl_name,
+            'id': pl_id}
+        with open(self.settings.dest_pl_file, 'wb') as fp:
+            pickle.dump(pl_info, fp, pickle.HIGHEST_PROTOCOL)
+
     def load_subscriptions(self):
         """Load subscriptions from file.
         """
@@ -127,33 +146,32 @@ class YouTubeSearch(object):
         with open(self.settings.subs_file, 'wb') as fp:
             pickle.dump(sub_info, fp, pickle.HIGHEST_PROTOCOL)
 
-    def get_playlist_by_name(self, name):
-        """Get a playlist by its name.
+    def get_user_playlists(self):
+        """Get list of user's playlists.
         """
-        request = self.client.channels().list(
-            part='contentDetails',
-            mine=True)
-        channel_info = request.execute()
-        content_details = channel_info['items'][0]['contentDetails']
-        playlists = content_details['relatedPlaylists']
-        return playlists[name]
+        max_results = 50
+        next_page = ''
+        playlists = []
 
-    def get_subs(self, **kwargs):
+        while True:
+            request = self.client.playlists().list(
+                part='snippet,contentDetails',
+                pageToken=next_page,
+                maxResults=max_results,
+                mine=True)
+            playlists_list = request.execute()
+            playlists.extend(p['snippet'] for p in playlists_list['items'])
+
+            try:
+                next_page = playlists_list('nextPageToken')
+            except BaseException:
+                break
+
+        return playlists
+
+    def get_user_subs(self):
         """Get a user's subscriber information.
         """
-        if 'refresh_subs' not in kwargs or not kwargs['refresh_subs']:
-            try:
-                s_subs = self.load_subscriptions()
-                # Backwards compatibility w/ <v0.2.0, will force sub reload.
-                if type(s_subs) in [dict, set]:
-                    if 'last_update' not in s_subs:
-                        return s_subs['subscriptions']
-                    elif (s_subs['last_update'] > datetime.now(timezone.utc)
-                          - timedelta(days=self.settings.subs_days_old)):
-                        return s_subs['subscriptions']
-            except FileNotFoundError:
-                pass
-
         max_results = 50
         next_page = ''
         subs = []
@@ -183,8 +201,6 @@ class YouTubeSearch(object):
             content_details = channel_info['items'][0]['contentDetails']
             sub['playlists'] = content_details['relatedPlaylists']
 
-        # Save subscribers to file before returning.
-        self.save_subscriptions(subs)
         return subs
 
     def get_channel_uploads(self, channel):

@@ -32,6 +32,7 @@ class Settings(object):
         self._credentials_file = os.path.join(self._config_path, 'credentials')
         self._last_run_file = os.path.join(self._config_path, 'last_run')
         self._subs_file = os.path.join(self._config_path, 'subscriptions')
+        self._dest_pl_file = os.path.join(self._config_path, 'dest_playlist')
 
         # If last_run doesn't exist, set this many days ago to default value.
         self._last_run_days_ago = 3
@@ -81,6 +82,13 @@ class Settings(object):
         """File containing cached subscriptions, <config_path>/subscriptions
         """
         return self._subs_file
+
+    @property
+    def dest_pl_file(self):
+        """File containing the playlist to save videos to,
+        <config_path>/dest_playlist
+        """
+        return self._dest_pl_file
 
     @property
     def last_run_days_ago(self):
