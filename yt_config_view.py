@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
 """
 File: config_view.py
 Description: Prints out the youtube_subscription_search configuraiton in JSON.

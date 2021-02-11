@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
 """
 File: youtube_search/settings.py
 Description: Holds static settings for the YouTube Search core.

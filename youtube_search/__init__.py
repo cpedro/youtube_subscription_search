@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 
 __author__ = 'Chris Pedro'

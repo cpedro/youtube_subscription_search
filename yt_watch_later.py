@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
 """
 File: watch_later.py
 Description: Searches YouTube subscriptions for new videos (since last run),

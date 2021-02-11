@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
 """
 File: youtube_search/core.py
 Description: Core of YouTube Search API.  Defines the class and methods.
