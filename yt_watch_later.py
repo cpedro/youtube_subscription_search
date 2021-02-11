@@ -60,18 +60,15 @@ def ask_for_dest_playlist(api, args):
     good_index = False
     while not good_index:
         try:
-            print('0: Watch Later')
+            print('Your playlists:')
             for i, pl in enumerate(playlists):
-                print('{}: {}'.format(i + 1, pl['title']))
+                print('  {}: {}'.format(i, pl['snippet']['title']))
             pl = int(input('Enter playlist index: '))
         except ValueError:
             continue
         good_index = (pl <= len(playlists) and pl >= 0)
 
-    # Hack to allow 'Watch Later'
-    if pl == 0:
-        return 'WL', 'Watch Later'
-    return playlists[pl - 1]['channelId'], playlists[pl - 1]['title']
+    return playlists[pl]['id'], playlists[pl]['snippet']['title']
 
 
 def get_dest_playlist(api, args):
@@ -160,7 +157,8 @@ def add_new_videos_to_playlist(api, pl_name, pl_id, new_videos, last_videos):
             try:
                 api.add_video_to_playlist(video['videoId'], pl_id)
                 added += 1
-            except googleapiclient.errors.HttpError:
+            except googleapiclient.errors.HttpError as e:
+                print(e)
                 skipped += 1
 
         print(('==========================================================\n'

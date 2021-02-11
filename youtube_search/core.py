@@ -160,7 +160,7 @@ class YouTubeSearch(object):
                 maxResults=max_results,
                 mine=True)
             playlists_list = request.execute()
-            playlists.extend(p['snippet'] for p in playlists_list['items'])
+            playlists.extend(p for p in playlists_list['items'])
 
             try:
                 next_page = playlists_list('nextPageToken')
