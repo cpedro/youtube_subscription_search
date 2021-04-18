@@ -12,7 +12,7 @@ __licence__ = 'MIT'
 
 
 import json
-import pickle
+import pickle5 as pickle
 import sys
 
 from google.oauth2.credentials import Credentials

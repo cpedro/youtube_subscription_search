@@ -12,7 +12,7 @@ __licence__ = 'MIT'
 import googleapiclient.discovery
 import googleapiclient.errors
 import os
-import pickle
+import pickle5 as pickle
 
 from .settings import Settings
 from datetime import datetime, timedelta, timezone
