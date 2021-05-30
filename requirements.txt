@@ -1,6 +1,7 @@
 #
 python-dateutil~=2.8.1
 pickle5
+testresources
 #
 # https://developers.google.com/youtube/v3/quickstart/python
 # Libraries for user authorization:
