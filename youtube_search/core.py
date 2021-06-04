@@ -229,3 +229,26 @@ class YouTubeSearch(object):
                         'videoId': video_id}}})
         return request.execute()
 
+    def get_playlist_items(self, playlist_id):
+        """Get list of items in a playlist.
+        """
+        max_results = 50
+        next_page = ''
+        playlist_items = []
+
+        while True:
+            request = self.client.playlistItems().list(
+                part='id,status,snippet,contentDetails',
+                pageToken=next_page,
+                maxResults=max_results,
+                playlistId=playlist_id)
+            items_list = request.execute()
+            playlist_items.extend(p for p in items_list['items'])
+
+            try:
+                next_page = items_list('nextPageToken')
+            except BaseException:
+                break
+
+        return playlist_items
+
