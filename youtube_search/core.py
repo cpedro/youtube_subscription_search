@@ -213,7 +213,11 @@ class YouTubeSearch(object):
             part='contentDetails',
             maxResults=max_results,
             playlistId=channel['playlists']['uploads'])
-        uploads = request.execute()
+        try:
+            uploads = request.execute()
+        # Catch for channels with no uploads.
+        except googleapiclient.errors.HttpError:
+            return []
         return uploads['items']
 
     def add_video_to_playlist(self, video_id, playlist):
