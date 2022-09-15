@@ -126,6 +126,10 @@ def get_new_videos(api, args, subs, last_runtime):
 
         for video in uploads:
             details = video['contentDetails']
+            # Bug fix, some videos seem to not have a published date?  Seems to
+            # happen with privated videos, so just skip them.
+            if 'videoPublishedAt' not in details:
+                continue
             published = dateutil.parser.isoparse(details['videoPublishedAt'])
             # Give a bit of a buffer to last run. This is needed because videos
             # sometimes take a while to appear in the API.
