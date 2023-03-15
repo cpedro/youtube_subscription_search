@@ -5,8 +5,10 @@ testresources
 #
 # https://developers.google.com/youtube/v3/quickstart/python
 # Libraries for user authorization:
-google-auth-oauthlib
-google-auth-httplib2
+google-api-python-client==1.7.2
+google-auth==1.8.0
+google-auth-httplib2==0.0.3
+google-auth-oauthlib==0.4.1
 #
 # The Google APIs Client Library for Python:
 google-api-python-client
